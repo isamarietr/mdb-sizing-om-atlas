@@ -1,0 +1,16 @@
+{
+  "name": "mdb-sizing-om-atlas",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "collect_metrics.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "csv-stringify": "^6.5.2",
+    "urllib": "^4.6.11"
+  }
+}

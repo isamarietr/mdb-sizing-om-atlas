@@ -1,0 +1,17 @@
+{
+  "MODE": "OPS_MANAGER",
+  "METRIC_PERIOD_DAYS": 180,
+  "METRIC_GRANULARITY_HOURS": 24,
+  "ATLAS": {
+    "BASE_URL": "https://cloud.mongodb.com/api/atlas/v2",
+    "HEADERS": "application/vnd.atlas.2025-03-12+json",
+    "PUBLIC_API_KEY": "YOUR_PUBLIC_API_KEY",
+    "PRIVATE_API_KEY": "YOUR_PRIVATE_API_KEY"
+  },
+  "OPS_MANAGER": {
+    "BASE_URL": "https://{host:port}/api/public/v1.0",
+    "HEADERS": "application/json",
+    "PUBLIC_API_KEY": "YOUR_PUBLIC_API_KEY",
+    "PRIVATE_API_KEY": "YOUR_PRIVATE_API_KEY"
+  }
+}
