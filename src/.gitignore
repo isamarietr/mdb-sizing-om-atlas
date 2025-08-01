@@ -1,4 +1,5 @@
-src/config.json
+config.json
+output/
 
 # Node.js dependencies
 node_modules/
