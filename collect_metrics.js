@@ -16,42 +16,41 @@ const METRIC_GRANULARITY_HOURS = CONFIG.METRIC_GRANULARITY_HOURS || 24; // Defau
 const OUTPUT_FILENAME = `MongoDB_Util_Report_${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
 const OUTPUT_DIR = path.join(__dirname, 'output');
 
-const METRIC_TO_HEADER = {
-  "DISK_PARTITION_IOPS_READ": "Read IOPS",
-  "DISK_PARTITION_IOPS_WRITE": "Write IOPS",
-  "DISK_PARTITION_IOPS_TOTAL": "Total IOPS",
-  "SYSTEM_NORMALIZED_CPU_USER": "System CPU",
-  "PROCESS_NORMALIZED_CPU_USER": "Process CPU",
-  "SYSTEM_MEMORY_USED": "Memory (Used)",
-  "SYSTEM_MEMORY_FREE_MB": "Memory (Free)",
-  "SYSTEM_MEMORY_AVAILABLE": "Memory (Available)",
-  "DB_DATA_SIZE_TOTAL_WO_SYSTEM": "Data Size",
-  "DB_INDEX_SIZE_TOTAL": "Index Size",
-  "DB_STORAGE_TOTAL": "Storage (Used)",
-  "OPCOUNTERS_INSERT": "Opcounters - Insert",
-  "OPCOUNTERS_QUERY": "Opcounters - Query",
-  "OPCOUNTERS_UPDATE": "Opcounters - Update",
-  "OPCOUNTERS_DELETE": "Opcounters - Delete",
-  "OPCOUNTERS_GETMORE": "Opcounters - Getmore",
-  "OPCOUNTERS_COMMAND": "Opcounters - Command",
-  "CACHE_BYTES_READ_INTO": "Cache - Bytes Read",
-  "CACHE_BYTES_WRITTEN_FROM": "Cache - Bytes Written",
-  "OPLOG_RATE_GB_PER_HOUR": "Oplog Rate",
-};
+const METRICS = [
+  'DISK_PARTITION_IOPS_READ',
+  'DISK_PARTITION_IOPS_WRITE',
+  'DISK_PARTITION_IOPS_TOTAL',
+  'DISK_PARTITION_SPACE_USED',
+  'SYSTEM_NORMALIZED_CPU_USER',
+  'PROCESS_NORMALIZED_CPU_USER',
+  'SYSTEM_MEMORY_USED',
+  'SYSTEM_MEMORY_FREE_MB',
+  'SYSTEM_MEMORY_AVAILABLE',
+  'DB_DATA_SIZE_TOTAL_WO_SYSTEM',
+  'DB_INDEX_SIZE_TOTAL',
+  'DB_STORAGE_TOTAL',
+  'OPCOUNTERS_INSERT',
+  'OPCOUNTERS_QUERY',
+  'OPCOUNTERS_UPDATE',
+  'OPCOUNTERS_DELETE',
+  'OPCOUNTERS_GETMORE',
+  'OPCOUNTERS_COMMAND',
+  'CACHE_BYTES_READ_INTO',
+  'CACHE_BYTES_WRITTEN_FROM',
+  'OPLOG_RATE_GB_PER_HOUR'
+];
 
-const MEASUREMENT_UNITS = {
-  "PERCENT": "(%)",
-  "MILLISECONDS": "(ms)",
-  "BYTES": "(B)",
-  "GIGABYTES": "(GB)",
-  "BYTES_PER_SECOND": "(B/s)",
-  "MEGABYTES_PER_SECOND": "(MB/s)",
-  "GIGABYTES_PER_HOUR": "(GB/h)",
-  "SCALAR_PER_SECOND": "(scalar/s)",
-  "SCALAR": "scalar"
-};
-
-const METRICS = Object.keys(METRIC_TO_HEADER);
+// const MEASUREMENT_UNITS = {
+//   "PERCENT": "(%)",
+//   "MILLISECONDS": "(ms)",
+//   "BYTES": "(B)",
+//   "GIGABYTES": "(GB)",
+//   "BYTES_PER_SECOND": "(B/s)",
+//   "MEGABYTES_PER_SECOND": "(MB/s)",
+//   "GIGABYTES_PER_HOUR": "(GB/h)",
+//   "SCALAR_PER_SECOND": "(scalar/s)",
+//   "SCALAR": "scalar"
+// };
 
 // --- API Helper Functions ---
 
@@ -116,11 +115,10 @@ async function getNodeMetrics(projectId, hostname, hostId) {
       // Only process measurements whose name is in the METRICS array
       if (!METRICS.includes(measurement.name)) continue;
 
-      const unit = MEASUREMENT_UNITS[measurement.units] ? MEASUREMENT_UNITS[measurement.units] : "SCALAR";
       const { min, max, median } = generateMinMaxMedian(measurement.dataPoints);
-      row[`MIN - ${METRIC_TO_HEADER[measurement.name]} ${unit}`] = min;
-      row[`MAX - ${METRIC_TO_HEADER[measurement.name]} ${unit}`] = max;
-      row[`MEDIAN - ${METRIC_TO_HEADER[measurement.name]} ${unit}`] = median;
+      row[`${measurement.name}_MIN`] = min;
+      row[`${measurement.name}_MAX`] = max;
+      row[`${measurement.name}_MEDIAN`] = median;
     }
   }
 
@@ -180,11 +178,16 @@ async function generateUtilizationReport() {
       const hostname = host.hostname;
       const replicaSetName = host.replicaSetName || "N/A";
       const clusterType = host.typeName || "UNKNOWN"; // MONGOD, MONGOS, CONFIG_SERVER, etc.
+      const systemInfo = host.systemInfo || { "memSizeMB" : 0, "numCores" : 0 }; 
 
+      console.log('hosts', host);
+      
       // Populate basic host information
       row["NODE_TYPE"] = clusterType;
       row["REPLICA_SET"] = replicaSetName;
       row["HOSTNAME"] = hostname;
+      row["SYSTEM_MEMORY_MB"] = systemInfo.memSizeMB;
+      row["SYSTEM_NUM_CORES"] = systemInfo.numCores;
 
       // Get metrics
       const metrics = await getNodeMetrics(
@@ -204,7 +207,7 @@ async function generateUtilizationReport() {
   }
 
   if (reportData.length > 0) {
-    const columns = ["NODE_TYPE", "REPLICA_SET", "HOSTNAME", ...extractedMetrics]; // Use the defined order of headers
+    const columns = ["NODE_TYPE", "REPLICA_SET", "HOSTNAME", "SYSTEM_MEMORY_MB", "SYSTEM_NUM_CORES", ...extractedMetrics]; // Use the defined order of headers
     stringify(reportData, { header: true, columns: columns }, (err, output) => {
       if (err) {
         console.error("Error generating CSV:", err);
