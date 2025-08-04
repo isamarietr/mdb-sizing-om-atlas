@@ -27,6 +27,6 @@ To collect metrics, run:
 node collect_metrics.js
 ```
 
-## Node Imports
+## Outputs
 
-The `collect_metrics.js` script uses standard Node.js modules and any dependencies listed in `package.json`.
+The collected information will be stored as CSV files in the `output/` directory.
