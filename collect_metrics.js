@@ -17,15 +17,19 @@ const OUTPUT_FILENAME = `MongoDB_Util_Report_${new Date().toISOString().replace(
 const OUTPUT_DIR = path.join(__dirname, 'output');
 
 const METRICS = [
+  'DISK_PARTITION_READ_IOPS_DATA',
+  'DISK_PARTITION_WRITE_IOPS_DATA',
   'DISK_PARTITION_IOPS_READ',
   'DISK_PARTITION_IOPS_WRITE',
   'DISK_PARTITION_IOPS_TOTAL',
   'DISK_PARTITION_SPACE_USED',
+  'DISK_PARTITION_SPACE_FREE',
   'SYSTEM_NORMALIZED_CPU_USER',
   'PROCESS_NORMALIZED_CPU_USER',
   'SYSTEM_MEMORY_USED',
   'SYSTEM_MEMORY_FREE_MB',
   'SYSTEM_MEMORY_AVAILABLE',
+  'DB_DATA_SIZE_TOTAL',
   'DB_DATA_SIZE_TOTAL_WO_SYSTEM',
   'DB_INDEX_SIZE_TOTAL',
   'DB_STORAGE_TOTAL',
@@ -107,8 +111,29 @@ async function getNodeMetrics(projectId, hostname, hostId) {
   console.log(`Fetching metrics for ${hostname}...`);
 
   const metricsData = await makeApiRequest("GET", `/groups/${projectId}/${CONFIG.MODE === "ATLAS" ? "processes" : "hosts"}/${hostId}/measurements?${params}`);
+  const disksData = await makeApiRequest("GET", `/groups/${projectId}/${CONFIG.MODE === "ATLAS" ? "processes" : "hosts"}/${hostId}/disks`);
 
-  // fs.writeFileSync(path.join(OUTPUT_DIR, 'measurements.json'), JSON.stringify(metricsData, null, 2));
+  if (disksData && disksData.results && disksData.results.length > 0) {
+    for (const disk of disksData.results) {
+      const partitionName = disk.partitionName;
+      // Fetch disk IOPS metrics for this partition
+      const diskMetricsData = await makeApiRequest(
+        "GET",
+        `/groups/${projectId}/${CONFIG.MODE === "ATLAS" ? "processes" : "hosts"}/${hostId}/disks/${encodeURIComponent(partitionName)}/measurements?${params}`
+      );
+      if (diskMetricsData && diskMetricsData.measurements && diskMetricsData.measurements.length > 0) {
+        for (const measurement of diskMetricsData.measurements) {
+          if (!METRICS.includes(measurement.name)) continue;
+          const { min, max, median } = generateMinMaxMedian(measurement.dataPoints);
+          row[`${partitionName}_${measurement.name}_MIN`] = min;
+          row[`${partitionName}_${measurement.name}_MAX`] = max;
+          row[`${partitionName}_${measurement.name}_MEDIAN`] = median;
+        }
+      }
+    }
+  }
+  
+  fs.writeFileSync(path.join(OUTPUT_DIR, 'measurements.json'), JSON.stringify(metricsData, null, 2));
 
   if (metricsData && metricsData.measurements && metricsData.measurements.length > 0) {
     for (const measurement of metricsData.measurements) {
