@@ -182,6 +182,11 @@ async function generateUtilizationReport() {
 
   let extractedMetrics = null;
   for (const project of projects) {
+    // skip projects not in the TARGET_PROJECT_NAMES list
+    if (CONFIG.TARGET_PROJECT_NAMES.length > 0 && !CONFIG.TARGET_PROJECT_NAMES.includes(project.name)) {
+      console.log(`Skipping project ${project.name} (ID: ${project.id}) as it is not in the TARGET_PROJECT_NAMES list.`);
+      continue;
+    }
     const projectId = project.id;
     const projectName = project.name;
     console.log(`\nProcessing project: ${projectName} (ID: ${projectId})`);
