@@ -133,7 +133,7 @@ async function getNodeMetrics(projectId, hostname, hostId) {
     }
   }
   
-  fs.writeFileSync(path.join(OUTPUT_DIR, 'measurements.json'), JSON.stringify(metricsData, null, 2));
+  // fs.writeFileSync(path.join(OUTPUT_DIR, 'measurements.json'), JSON.stringify(metricsData, null, 2));
 
   if (metricsData && metricsData.measurements && metricsData.measurements.length > 0) {
     for (const measurement of metricsData.measurements) {
