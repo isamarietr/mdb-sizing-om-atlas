@@ -1,7 +1,7 @@
 {
   "MODE": "OPS_MANAGER",
   "METRIC_PERIOD_DAYS": 180,
-  "METRIC_GRANULARITY_HOURS": 24,
+  "METRIC_GRANULARITY_HOURS": 168,
   "ATLAS": {
     "BASE_URL": "https://cloud.mongodb.com/api/atlas/v2",
     "HEADERS": "application/vnd.atlas.2025-03-12+json",
