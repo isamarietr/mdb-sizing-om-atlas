@@ -208,6 +208,7 @@ async function generateUtilizationReport() {
       const hostname = host.hostname;
       const replicaSetName = host.replicaSetName || "N/A";
       const clusterType = host.typeName || "UNKNOWN"; // MONGOD, MONGOS, CONFIG_SERVER, etc.
+      const shardName = host.shardName || "N/A"; 
       const systemInfo = host.systemInfo || { "memSizeMB" : 0, "numCores" : 0 }; 
 
       console.log('hosts', host);
@@ -215,6 +216,7 @@ async function generateUtilizationReport() {
       // Populate basic host information
       row["NODE_TYPE"] = clusterType;
       row["REPLICA_SET"] = replicaSetName;
+      row["SHARD_NAME"] = shardName;
       row["HOSTNAME"] = hostname;
       row["SYSTEM_MEMORY_MB"] = systemInfo.memSizeMB;
       row["SYSTEM_NUM_CORES"] = systemInfo.numCores;
@@ -237,7 +239,7 @@ async function generateUtilizationReport() {
   }
 
   if (reportData.length > 0) {
-    const columns = ["NODE_TYPE", "REPLICA_SET", "HOSTNAME", "SYSTEM_MEMORY_MB", "SYSTEM_NUM_CORES", ...extractedMetrics]; // Use the defined order of headers
+    const columns = ["NODE_TYPE", "SHARD_NAME","REPLICA_SET", "HOSTNAME", "SYSTEM_MEMORY_MB", "SYSTEM_NUM_CORES", ...extractedMetrics]; // Use the defined order of headers
     stringify(reportData, { header: true, columns: columns }, (err, output) => {
       if (err) {
         console.error("Error generating CSV:", err);
