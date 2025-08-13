@@ -5,6 +5,7 @@ This project collects metrics fro Ops Manager to assist with Atlas sizing
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) installed
+- Ops Manager API Key - role with read-only access should be sufficient
 
 ## Install Dependencies
 
@@ -26,6 +27,13 @@ To collect metrics, run:
 ```bash
 node collect_metrics.js
 ```
+
+This will collect metrics for all projects. To limit the execution to specific projects, add the project names to the `TARGET_PROJECT_NAMES` array in `config.json`.
+
+```
+"TARGET_PROJECT_NAMES": [ "Project0", "Project1" ],
+```
+
 
 ## Outputs
 
