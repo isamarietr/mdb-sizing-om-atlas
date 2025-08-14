@@ -124,10 +124,12 @@ async function getNodeMetrics(projectId, hostname, hostId) {
       if (diskMetricsData && diskMetricsData.measurements && diskMetricsData.measurements.length > 0) {
         for (const measurement of diskMetricsData.measurements) {
           if (!METRICS.includes(measurement.name)) continue;
-          const { min, max, median } = generateMinMaxMedian(measurement.dataPoints);
+          const { min, max, median, p95, p99 } = getMetricDistribution(measurement.dataPoints);
           row[`${partitionName}_${measurement.name}_MIN`] = min;
           row[`${partitionName}_${measurement.name}_MAX`] = max;
-          row[`${partitionName}_${measurement.name}_MEDIAN`] = median;
+          row[`${partitionName}_${measurement.name}_P50`] = median;
+          row[`${partitionName}_${measurement.name}_P95`] = p95;
+          row[`${partitionName}_${measurement.name}_P99`] = p99;
         }
       }
     }
@@ -140,17 +142,19 @@ async function getNodeMetrics(projectId, hostname, hostId) {
       // Only process measurements whose name is in the METRICS array
       if (!METRICS.includes(measurement.name)) continue;
 
-      const { min, max, median } = generateMinMaxMedian(measurement.dataPoints);
+      const { min, max, median, p95, p99 } = getMetricDistribution(measurement.dataPoints);
       row[`${measurement.name}_MIN`] = min;
       row[`${measurement.name}_MAX`] = max;
-      row[`${measurement.name}_MEDIAN`] = median;
+      row[`${measurement.name}_P50`] = median;
+      row[`${measurement.name}_P95`] = p95;
+      row[`${measurement.name}_P99`] = p99;
     }
   }
 
   return row;
 }
 
-function generateMinMaxMedian(dataPoints) {
+function getMetricDistribution(dataPoints) {
   const values = dataPoints.map(dp => dp.value);
   const sorted = [...values].sort((a, b) => a - b);
   // Calculate median
@@ -164,10 +168,21 @@ function generateMinMaxMedian(dataPoints) {
   const min = Math.min(...values);
   const max = Math.max(...values);
 
+  // Calculate p95 and p99 percentiles
+  function percentile(arr, p) {
+    if (arr.length === 0) return null;
+    const idx = Math.ceil((p / 100) * arr.length) - 1;
+    return sorted[Math.max(0, Math.min(idx, arr.length - 1))];
+  }
+  const p95 = percentile(sorted, 95);
+  const p99 = percentile(sorted, 99);
+
   return {
     min: min,
     max: max,
-    median: median
+    median: median,
+    p95: p95,
+    p99: p99
   };
 }
 
