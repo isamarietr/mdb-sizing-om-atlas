@@ -17,7 +17,9 @@ npm install
 
 - Copy `config.json.sample` to a new `config.json` file
 - Update the value for `MODE` to indicate which system to retrieve metrics from. Options: `OPS_MANAGER` or `ATLAS`
-- To collect Ops Manager metrics, update the values for `BASE_URL`, `PUBLIC_API_KEY`, and `PRIVATE_API_KEY` in the OPS_MANAGER section.
+  - For Cloud Manager, use `OPS_MANAGER` mode
+- To collect Ops Manager or Cloud manager metrics, update the values for `BASE_URL`, `PUBLIC_API_KEY`, and `PRIVATE_API_KEY` in the `OPS_MANAGER` section.
+  - For Cloud Manager, `"BASE_URL": "https://cloud.mongodb.com/api/public/v1.0"` 
 - To collect Atlas metrics, update the values for `PUBLIC_API_KEY` and `PRIVATE_API_KEY` in the ATLAS section.
 
 ## Running the Script
